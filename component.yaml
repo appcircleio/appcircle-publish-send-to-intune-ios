@@ -2,7 +2,7 @@ platform: iOS
 purpose: Publish
 buildPlatform:
 displayName: "Send to Microsoft Intune"
-description: "Upload binary for Intune publishing"
+description: "Upload binary for Microsoft Intune publishing"
 marketPlace: "AppleAppStore"
 inputs:
 - key: "AC_INTUNE_AUTH_URL"
@@ -27,13 +27,13 @@ inputs:
   defaultValue: "$AC_INTUNE_APP_ID"
   isRequired: false
   title: Intune AppId
-  description: "Intune AppId"
+  description: "To update a published application in Microsoft Intune, the application's ID on Microsoft Intune."
   helpText:
 - key: "AC_INTUNE_PUBLISHER_NAME"
   defaultValue: "$AC_INTUNE_PUBLISHER_NAME"
   isRequired: false
   title: Intune Publisher Name
-  description: "Default will be organization's Name"
+  description: "Default will be the name of the organization."
   helpText:
 processFilename: bash
 processArguments: '%AC_STEP_TEMP%/main.sh'
