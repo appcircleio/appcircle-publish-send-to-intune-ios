@@ -457,48 +457,6 @@ getAppCommitBody(){
 EOF
 }
 
-getUpdatedAppCommitBody(){
-    local contentVersionId="$1"
-    local LobType="$2"
-    local displayName="$3"
-    local publisher="$4"
-    local description="$5"
-    local filename="$6"
-    local bundleId="$7"
-    local identityVersion="$8"
-    local buildNumber="$9"
-    local versionNumber="$10"
-    local expirationDateTime="$11"
-    local publishedAppBody="$12"
-
-    updatedAppBody=$(echo "$publishedAppBody" | jq \
-    --arg LOBType "#$LOBType" \
-    --arg buildNumber "$buildNumber" \
-    --arg contentVersionId "$contentVersionId" \
-    --arg displayName "$displayName" \
-    --arg description "$description" \
-    --arg filename "$filename" \
-    --arg bundleId "$bundleId" \
-    --arg identityVersion "$identityVersion" \
-    --arg versionNumber "$versionNumber" \
-    --arg expirationDateTime "$expirationDateTime" \
-    --arg publisher "$publisher" \
-    '
-    .["@odata.type"] = $LOBType |
-    .buildNumber = $buildNumber |
-    .committedContentVersion = $contentVersionId |
-    .displayName = $displayName |
-    .description = $description |
-    .fileName = $filename |
-    .bundleId = $bundleId |
-    .identityVersion = $identityVersion |
-    .versionNumber = $versionNumber |
-    .expirationDateTime = $expirationDateTime |
-    .publisher = $publisher
-')
-    echo $updatedAppBody
-}
-
 
 # This function is used to upload an iOS LOB Application to the Intune Service
 #
@@ -630,7 +588,7 @@ createAndUploadiOSLobApp(){
     if [ "$updateApp" = "false" ]; then
         commitAppBody=$(getAppCommitBody "$contentVersionId" "$LOBType")
     else
-        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .largeIcon, .lastModifiedDateTime, .publishingState  )' | jq \
+        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState  )' | jq \
             --arg LOBType "#$LOBType" \
             --arg buildNumber "$buildNumber" \
             --arg contentVersionId "$contentVersionId" \
