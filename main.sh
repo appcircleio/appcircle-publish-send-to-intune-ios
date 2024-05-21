@@ -458,11 +458,6 @@ EOF
 }
 
 
-# This function is used to upload an iOS LOB Application to the Intune Service
-#
-# Example: 
-# createAndUploadiOSLobApp "package.ipa" "package.ipa" "Publisher Name" "Description of Application" "com.package"  "1" "30" "3.0.0" "2027-02-14T20:53:52Z"
-#  This example uses all parameters required to add an iOS Application into the Intune Service
 createAndUploadiOSLobApp(){
     local sourceFile="$1"
     local displayName="$2"
