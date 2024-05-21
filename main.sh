@@ -1,17 +1,28 @@
 #!/bin/bash
 # install jq to use this script
-# Obtain these values before the component starts. (from env, etc..)
 
 brew install jq
 
+echo "IPAFileName:$IPAFileName"
+echo "IPAFileUrl:$IPAFileUrl"
+echo "AppName:$AppName"
+echo "BundleId:$UniqueName"
+echo "OrganizationName:$OrganizationName"
+echo "UserEmail:$UserEmail"
+echo "IconFileName:$IconFileName"
+echo "IconUrl:$IconUrl"
+
 locale
+## Get app binary
 curl -o "./$IPAFileName" -k $IPAFileUrl
+
+## Get app icon
+curl -o "./$IconFileName" -k $IconUrl
 
 authUrl="$AC_INTUNE_AUTH_URL"
 clientId="$AC_INTUNE_CLIENT_ID"
 clientSecret="$AC_INTUNE_CLIENT_SECRET"
 inTuneAppId="$AC_INTUNE_APP_ID"
-####################################################
 # Variables
 accessToken=""
 baseUrl="https://graph.microsoft.com/v1.0"
@@ -20,7 +31,7 @@ scope="https://graph.microsoft.com/.default"
 grant_type="client_credentials"
 sleep=10
 encrypted_file_name="encrpyted_file.bin"
-####################################################
+
 
 function printInfo {
     local message=$1
@@ -37,7 +48,18 @@ function printSuccess {
     echo -e "\033[1;32m${message}\033[0m"
 }
 
-####################################################
+
+getAppIconBody(){
+    if [ -n "${IconFileName}" ]; then
+        mime_type=$(file --mime-type -b "$IconFileName")
+        base64_image=$(base64 < "$IconFileName" | tr -d '\n')
+        json_output=$(jq -n --arg mimeType "$mime_type" --arg value "$base64_image" \
+    '{type: $mimeType, value: $value}')
+        echo "$json_output"
+    else 
+        echo ""
+    fi    
+}
 
 makeRequest(){
     local verb="$1"
@@ -54,8 +76,6 @@ makeRequest(){
     echo $response
 }
 
-####################################################
-
 getAccessToken(){
  response=$(curl --location "$authUrl"\
                 --header 'Content-Type: application/x-www-form-urlencoded' \
@@ -68,7 +88,7 @@ getAccessToken(){
  accessToken=$(echo "$response" | jq -r '.access_token')
 }
 
-####################################################
+
 
 function makeGetRequest(){
     local collectionPath="$1"
@@ -90,7 +110,7 @@ function getiOSAppList(){
     echo "$response"
 }
 
-####################################################
+
 
 function makePatchRequest(){
     local collectionPath="$1"
@@ -99,7 +119,7 @@ function makePatchRequest(){
     echo $response
 }
 
-####################################################
+
 
 function makePostRequest(){
     local collectionPath="$1"
@@ -108,7 +128,7 @@ function makePostRequest(){
     echo $response
 }
 
-####################################################
+
 
 testSourceFile(){
     local sourceFile="$1"
@@ -121,7 +141,7 @@ testSourceFile(){
     fi
 }
 
-####################################################
+
 
 generateKey(){
   local num_bytes="0"
@@ -169,7 +189,6 @@ encryptFile(){
     openssl enc -aes-256-cbc -K "$encryptionKey" -iv "$initializationVector" -in "$file" -out "$encryptedFile"
     
     # Append IV to the end of the file
-    # echo "${initializationVector}" | xxd -r -p >> "${encryptedFile}"
     echo "${initializationVector}" | xxd -r -p >> "$temp_file"
     cat "$temp_file" "$encryptedFile" > "$combined_file"
     echo -n "" | dd of="$encryptedFile" bs=1 seek=0 count=0
@@ -205,7 +224,7 @@ encryptFile(){
     echo "$encryptionInfo";
 }
 
-####################################################
+
 
 getiOSAppBody(){
     local displayName="$1"
@@ -217,6 +236,39 @@ getiOSAppBody(){
     local buildNumber="$7"
     local versionNumber="$8"
     local expirationDateTime="$9"
+
+    iconBody=$(getAppIconBody)
+    if([ -n "$iconBody" ]); then
+    cat <<EOF
+{
+    "@odata.type": "#microsoft.graph.iosLOBApp",
+    "applicableDeviceType": {
+        "iPad": true,
+        "iPhoneAndIPod": true
+    },
+    "categories": [],
+    "displayName": "$displayName",
+    "publisher": "$publisher",
+    "description": "$description",
+    "fileName": "$filename",
+    "buildNumber": "$buildNumber",
+    "bundleId": "$bundleId",
+    "identityVersion": "$identityVersion",
+    "minimumSupportedOperatingSystem": {
+        "v9_0": true
+    },
+    largeIcon:$(echo "$iconBody" | jq -c .),
+    "informationUrl": null,
+    "isFeatured": false,
+    "privacyInformationUrl": null,
+    "developer": "",
+    "notes": "",
+    "owner": "",
+    "expirationDateTime": "$expirationDateTime",
+    "versionNumber": "$versionNumber"
+}
+EOF
+    else
     cat <<EOF
 {
     "@odata.type": "#microsoft.graph.iosLOBApp",
@@ -245,7 +297,7 @@ getiOSAppBody(){
     "versionNumber": "$versionNumber"
 }
 EOF
-   
+fi
 }
 
 generateiOSManifest() {
@@ -447,7 +499,7 @@ getUpdatedAppCommitBody(){
     echo $updatedAppBody
 }
 
-####################################################
+
 # This function is used to upload an iOS LOB Application to the Intune Service
 #
 # Example: 
@@ -612,6 +664,32 @@ createAndUploadiOSLobApp(){
     printSuccess "App published successfully"
 }
 
-####################################################
 
-createAndUploadiOSLobApp $IPAFileName "$AppName" $UserEmail "" $UniqueName "1" $VersionCode $Version "2027-03-26T07:06:46Z"
+PUBLISHER=""
+EXPIRATION_DATE=""
+
+ if [ -n "${AC_INTUNE_PUBLISHER_NAME}" ]; then
+        PUBLISHER="$AC_INTUNE_PUBLISHER_NAME"
+        printInfo "Publisher Name: $PUBLISHER"
+ elif [ -n "${OrganizationName}" ]; then
+        PUBLISHER="$OrganizationName"
+        printInfo "Publisher Name: $PUBLISHER"
+ elif [ -n "${UserEmail}" ]; then
+        PUBLISHER="$UserEmail"
+        printInfo "Publisher Name: $PUBLISHER"
+ else
+        PUBLISHER="Appcircle"
+        printInfo "Publisher Name: $PUBLISHER"
+ fi
+
+ if [ -n "${ExpireDate}" ]; then
+        EXPIRATION_DATE="$ExpireDate"
+        printInfo "App expire Date: $ExpireDate"
+ else 
+        current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        one_year_later=$(date -u -v +1y +"%Y-%m-%dT%H:%M:%SZ")
+        printInfo "App expire Date: $one_year_later"
+        EXPIRATION_DATE="$one_year_later"
+ fi
+
+createAndUploadiOSLobApp $IPAFileName "$AppName" "$PUBLISHER" "" $UniqueName "1" $VersionCode $Version "$EXPIRATION_DATE"
