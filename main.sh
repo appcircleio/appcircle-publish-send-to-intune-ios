@@ -11,6 +11,7 @@ echo "OrganizationName:$OrganizationName"
 echo "UserEmail:$UserEmail"
 echo "IconFileName:$IconFileName"
 echo "IconUrl:$IconUrl"
+echo "ACOutputDir:$AC_OUTPUT_DIR"
 
 locale
 ## Get app binary
@@ -518,6 +519,9 @@ createAndUploadiOSLobApp(){
             exit 1
         fi
         appId=$(echo "$mobileApp" | jq -r '.id')
+        printInfo "Application created with ID: $appId"
+        echo "CreatedIntuneAppId=$appId" >> "$AC_OUTPUT_DIR/AC_OUTPUT.env"
+
     fi
 
     printInfo "Creating Content Version in the service for the application..."
