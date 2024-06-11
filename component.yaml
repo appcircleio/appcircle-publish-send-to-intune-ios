@@ -11,6 +11,24 @@ inputs:
   title: Intune Publisher Name
   description: "Default will be the name of the organization."
   helpText:
+- key: "AC_INTUNE_TARGETED_PLATFORM"
+  defaultValue: "Both"
+  editorType: select
+  optionTitles: "Both,iPad,iPhone and iPod"
+  options: "Both,iPad,iPhoneAndIPod"
+  isRequired: true
+  title: Applicable Device Type
+  description: "Select the device types that can install this app."
+  helpText:
+- key: "AC_INTUNE_MIN_OS_VERSION"
+  defaultValue: "v8_0"
+  editorType: select
+  optionTitles: "iOS 8.0,iOS 9.0,iOS 10.0,iOS 11.0,iOS 12.0,iOS 13.0,iOS 14.0,iOS 15.0,iOS 16.0,iOS 17.0"
+  options: "v8_0,v9_0,v10_0,v11_0,v12_0,v13_0,v14_0,v15_0,v16_0,v17_0"
+  isRequired: true
+  title: Minimum Operating System
+  description: "Select the earliest operating system version on which the app can be installed. If you assign the app to a device with an earlier operating system, it will not be installed.​"
+  helpText:
 processFilename: bash
 processArguments: '%AC_STEP_TEMP%/main.sh'
 files:

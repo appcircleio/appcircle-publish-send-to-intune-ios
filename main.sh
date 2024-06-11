@@ -24,10 +24,30 @@ authUrl="$AC_CREDENTIAL_INTUNE_CLIENT_AUTH_URL"
 clientId="$AC_CREDENTIAL_INTUNE_CLIENT_ID"
 clientSecret="$AC_CREDENTIAL_INTUNE_CLIENT_SECRET"
 inTuneAppId="$AC_INTUNE_APP_ID"
+minOsVersion="$AC_INTUNE_MIN_OS_VERSION"
+targetedPlaform="$AC_INTUNE_TARGETED_PLATFORM"
+
+targetOSObject=$(printf '{
+        "iPad": true,
+        "iPhoneAndIPod": true
+    }')
+if [ "$targetedPlaform" = "iPad" ]; then
+        targetOSObject=$(printf '{
+        "iPad": true,
+        "iPhoneAndIPod": false
+    }')
+fi
+
+if [ "$targetedPlaform" = "iPhoneAndIPod" ]; then
+        targetOSObject=$(printf '{
+        "iPad": false,
+        "iPhoneAndIPod": true
+    }')
+fi
+
 # Variables
 accessToken=""
-baseUrl="https://graph.microsoft.com/v1.0"
-betaUrl="https://graph.microsoft.com/beta"
+baseUrl="https://graph.microsoft.com/beta"
 scope="https://graph.microsoft.com/.default"
 grant_type="client_credentials"
 sleep=10
@@ -100,18 +120,6 @@ function makeGetRequest(){
     response=$(curl -X GET -H "Content-Type: $contentType" -H "Authorization: $authorization" "$uri" 2>/dev/null)
     echo "$response"
 }
-
-function getiOSAppList(){
-    local filterString="%24filter=(microsoft.graph.managedApp%2FappAvailability%20eq%20null%20or%20microsoft.graph.managedApp%2FappAvailability%20eq%20%27lineOfBusiness%27%20or%20isAssigned%20eq%20true)"
-    local uri="$betaUrl/deviceAppManagement/mobileApps?$filterString"
-    local request="GET $uri"
-    contentType="application/json"
-    authorization="Bearer $accessToken"
-    response=$(curl -X GET -H "Content-Type: $contentType" -H "Authorization: $authorization" "$uri" 2>/dev/null)
-    echo "$response"
-}
-
-
 
 function makePatchRequest(){
     local collectionPath="$1"
@@ -243,10 +251,7 @@ getiOSAppBody(){
     cat <<EOF
 {
     "@odata.type": "#microsoft.graph.iosLOBApp",
-    "applicableDeviceType": {
-        "iPad": true,
-        "iPhoneAndIPod": true
-    },
+    "applicableDeviceType": $targetOSObject,
     "categories": [],
     "displayName": "$displayName",
     "publisher": "$publisher",
@@ -256,7 +261,7 @@ getiOSAppBody(){
     "bundleId": "$bundleId",
     "identityVersion": "$identityVersion",
     "minimumSupportedOperatingSystem": {
-        "v9_0": true
+        "$minOsVersion": true
     },
     largeIcon:$(echo "$iconBody" | jq -c .),
     "informationUrl": null,
@@ -273,10 +278,7 @@ EOF
     cat <<EOF
 {
     "@odata.type": "#microsoft.graph.iosLOBApp",
-    "applicableDeviceType": {
-        "iPad": true,
-        "iPhoneAndIPod": true
-    },
+    "applicableDeviceType": $targetOSObject,
     "categories": [],
     "displayName": "$displayName",
     "publisher": "$publisher",
@@ -286,7 +288,7 @@ EOF
     "bundleId": "$bundleId",
     "identityVersion": "$identityVersion",
     "minimumSupportedOperatingSystem": {
-        "v9_0": true
+        "$minOsVersion": true
     },
     "informationUrl": null,
     "isFeatured": false,
@@ -587,7 +589,10 @@ createAndUploadiOSLobApp(){
     if [ "$updateApp" = "false" ]; then
         commitAppBody=$(getAppCommitBody "$contentVersionId" "$LOBType")
     else
-        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState  )' | jq \
+        minimumSupportedOperatingSystem=$(printf '{
+        "%s": true
+        }' "$minOsVersion")
+        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState, .uploadState, .isAssigned, .roleScopeTagIds, .dependentAppCount, .supersedingAppCount, .supersededAppCount )' | jq \
             --arg LOBType "#$LOBType" \
             --arg buildNumber "$buildNumber" \
             --arg contentVersionId "$contentVersionId" \
@@ -598,6 +603,8 @@ createAndUploadiOSLobApp(){
             --arg versionNumber "$versionNumber" \
             --arg expirationDateTime "$expirationDateTime" \
             --arg publisher "$publisher" \
+            --argjson minimumSupportedOperatingSystem "$minimumSupportedOperatingSystem" \
+            --argjson applicableDeviceType "$targetOSObject" \
             '
             .["@odata.type"] = $LOBType |
             .buildNumber = $buildNumber |
@@ -607,7 +614,9 @@ createAndUploadiOSLobApp(){
             .fileName = $filename |
             .versionNumber = $versionNumber |
             .expirationDateTime = $expirationDateTime |
-            .publisher = $publisher
+            .publisher = $publisher |
+            .applicableDeviceType = $applicableDeviceType |
+            .minimumSupportedOperatingSystem = $minimumSupportedOperatingSystem
             ')
     fi
     response=$(makePatchRequest "$commitAppUri" "$commitAppBody")
