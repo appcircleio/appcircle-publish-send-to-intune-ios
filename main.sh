@@ -3,22 +3,22 @@
 
 brew install jq
 
-echo "IPAFileName:$IPAFileName"
-echo "IPAFileUrl:$IPAFileUrl"
-echo "AppName:$AppName"
-echo "BundleId:$UniqueName"
-echo "OrganizationName:$OrganizationName"
-echo "UserEmail:$UserEmail"
-echo "IconFileName:$IconFileName"
-echo "IconUrl:$IconUrl"
+echo "IPAFileName:$AC_APP_FILE_NAME"
+echo "IPAFileUrl:$AC_APP_FILE_URL"
+echo "AppName:$AC_APP_VERSION_NAME"
+echo "BundleId:$AC_UNIQUE_NAME"
+echo "OrganizationName:$AC_ORGANIZATION_NAME"
+echo "UserEmail:$AC_USER_EMAIL"
+echo "IconFileName:$AC_APP_ICON_FILE_NAME"
+echo "IconUrl:$AC_APP_ICON_URL"
 echo "ACOutputDir:$AC_OUTPUT_DIR"
 
 locale
 ## Get app binary
-curl -o "./$IPAFileName" -k $IPAFileUrl
+curl -o "./$AC_APP_FILE_NAME" -k $AC_APP_FILE_URL
 
 ## Get app icon
-curl -o "./$IconFileName" -k $IconUrl
+curl -o "./$AC_APP_ICON_FILE_NAME" -k $AC_APP_ICON_URL
 
 authUrl="$AC_CREDENTIAL_INTUNE_CLIENT_AUTH_URL"
 clientId="$AC_CREDENTIAL_INTUNE_CLIENT_ID"
@@ -71,9 +71,9 @@ function printSuccess {
 
 
 getAppIconBody(){
-    if [ -n "${IconFileName}" ]; then
-        mime_type=$(file --mime-type -b "$IconFileName")
-        base64_image=$(base64 < "$IconFileName" | tr -d '\n')
+    if [ -n "${AC_APP_ICON_FILE_NAME}" ]; then
+        mime_type=$(file --mime-type -b "$AC_APP_ICON_FILE_NAME")
+        base64_image=$(base64 < "$AC_APP_ICON_FILE_NAME" | tr -d '\n')
         json_output=$(jq -n --arg mimeType "$mime_type" --arg value "$base64_image" \
     '{type: $mimeType, value: $value}')
         echo "$json_output"
@@ -637,11 +637,11 @@ EXPIRATION_DATE=""
  if [ -n "${AC_INTUNE_PUBLISHER_NAME}" ]; then
         PUBLISHER="$AC_INTUNE_PUBLISHER_NAME"
         printInfo "Publisher Name: $PUBLISHER"
- elif [ -n "${OrganizationName}" ]; then
-        PUBLISHER="$OrganizationName"
+ elif [ -n "${AC_ORGANIZATION_NAME}" ]; then
+        PUBLISHER="$AC_ORGANIZATION_NAME"
         printInfo "Publisher Name: $PUBLISHER"
- elif [ -n "${UserEmail}" ]; then
-        PUBLISHER="$UserEmail"
+ elif [ -n "${AC_USER_EMAIL}" ]; then
+        PUBLISHER="$AC_USER_EMAIL"
         printInfo "Publisher Name: $PUBLISHER"
  else
         PUBLISHER="Appcircle"
@@ -658,4 +658,4 @@ EXPIRATION_DATE=""
         EXPIRATION_DATE="$one_year_later"
  fi
 
-createAndUploadiOSLobApp $IPAFileName "$AppName" "$PUBLISHER" "" $UniqueName "1" $VersionCode $Version "$EXPIRATION_DATE"
+createAndUploadiOSLobApp $AC_APP_FILE_NAME "$AC_APP_VERSION_NAME" "$PUBLISHER" "" $AC_UNIQUE_NAME "1" $AC_PUBLISH_APP_VERSION_CODE $AC_PUBLISH_APP_VERSION "$EXPIRATION_DATE"
