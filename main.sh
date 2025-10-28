@@ -1,5 +1,6 @@
 #!/bin/bash
 # install jq to use this script
+set -euo pipefail
 
 brew install jq
 
@@ -81,7 +82,6 @@ getAppIconBody(){
         echo ""
     fi    
 }
-
 makeRequest() {
     local verb="$1"
     local collectionPath="$2"
@@ -95,28 +95,26 @@ makeRequest() {
     tmpFile=$(mktemp /tmp/makeRequest.XXXXXX.json)
 
     local httpCode
-    httpCode=$(curl -s -w "%{http_code}" --fail-with-body -o "$tmpFile" \
+    httpCode=$(curl -sS --fail-with-body -w "%{http_code}" -o "$tmpFile" \
         -X "$verb" \
         -H "Content-Type: $contentType" \
         -H "Authorization: $authorization" \
         ${body:+-d "$body"} \
-        "$uri")
+        "$uri" || echo "CURL_FAILED")
 
-    if [ $? -ne 0 ]; then
-        echo -e "❌ CURL request failed (network or connection error)" >&2
+    if [[ "$httpCode" == "CURL_FAILED" ]]; then
+        printf "❌ CURL request failed (network or connection error)\n" >&2
         rm -f "$tmpFile"
         exit 1
     fi
 
     if [[ "$httpCode" -lt 200 || "$httpCode" -ge 300 ]]; then
-        echo -e "❌ Request failed with HTTP $httpCode $body" >&2
-
+        printf "❌ Request failed with HTTP %s\n" "$httpCode" >&2
         if command -v jq >/dev/null 2>&1; then
             jq . "$tmpFile" 2>/dev/null || cat "$tmpFile"
         else
             cat "$tmpFile"
         fi
-
         rm -f "$tmpFile"
         exit 1
     fi
