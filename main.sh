@@ -81,45 +81,20 @@ getAppIconBody(){
         echo ""
     fi    
 }
-makeRequest() {
+
+makeRequest(){
     local verb="$1"
     local collectionPath="$2"
-    local body="${3:-}"
+    local body="$3"
+
     local uri="$baseUrl$collectionPath"
+    local request="$verb $uri"
 
-    local contentType="application/json"
-    local authorization="Bearer $accessToken"
-
-    local tmpFile
-    tmpFile=$(mktemp /tmp/makeRequest.XXXXXX.json)
-
-    local httpCode
-    httpCode=$(curl -sS --fail-with-body -w "%{http_code}" -o "$tmpFile" \
-        -X "$verb" \
-        -H "Content-Type: $contentType" \
-        -H "Authorization: $authorization" \
-        ${body:+-d "$body"} \
-        "$uri" || echo "CURL_FAILED")
-
-    if [[ "$httpCode" == "CURL_FAILED" ]]; then
-        printf "❌ CURL request failed (network or connection error)\n" >&2
-        rm -f "$tmpFile"
-        exit 1
-    fi
-
-    if [[ "$httpCode" -lt 200 || "$httpCode" -ge 300 ]]; then
-        printf "❌ Request failed with HTTP %s\n" "$httpCode" >&2
-        if command -v jq >/dev/null 2>&1; then
-            jq . "$tmpFile" 2>/dev/null || cat "$tmpFile"
-        else
-            cat "$tmpFile"
-        fi
-        rm -f "$tmpFile"
-        exit 1
-    fi
-
-    cat "$tmpFile"
-    rm -f "$tmpFile"
+    contentType="application/json"
+    contentLength="${#body}"
+    authorization="Bearer $accessToken"
+    response=$(curl -X "$verb" -H "Content-Type: $contentType" -H "Content-Length: $contentLength" -H "Authorization: $authorization" -d "$body" "$uri" 2>/dev/null)
+    echo $response
 }
 
 getAccessToken(){
@@ -628,7 +603,7 @@ createAndUploadiOSLobApp(){
         minimumSupportedOperatingSystem=$(printf '{
         "%s": true
         }' "$minOsVersion")
-        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState, .uploadState, .isAssigned, .roleScopeTagIds, .dependentAppCount, .supersedingAppCount, .supersededAppCount )' | jq \
+        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState, .uploadState, .isAssigned, .roleScopeTagIds, .dependentAppCount, .supersedingAppCount, .supersededAppCount, .appleDeviceAppDeliveryProtocolType )' | jq \
             --arg LOBType "#$LOBType" \
             --arg buildNumber "$buildNumber" \
             --arg contentVersionId "$contentVersionId" \
