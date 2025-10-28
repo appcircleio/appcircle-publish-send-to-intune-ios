@@ -1,6 +1,6 @@
 #!/bin/bash
 # install jq to use this script
-set -euo pipefail
+set -e pipefail
 
 brew install jq
 
