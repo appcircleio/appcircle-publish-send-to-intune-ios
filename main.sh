@@ -82,19 +82,47 @@ getAppIconBody(){
     fi    
 }
 
-makeRequest(){
+makeRequest() {
     local verb="$1"
     local collectionPath="$2"
-    local body="$3"
-
+    local body="${3:-}"
     local uri="$baseUrl$collectionPath"
-    local request="$verb $uri"
 
-    contentType="application/json"
-    contentLength="${#body}"
-    authorization="Bearer $accessToken"
-    response=$(curl -X "$verb" -H "Content-Type: $contentType" -H "Content-Length: $contentLength" -H "Authorization: $authorization" -d "$body" "$uri" 2>/dev/null)
-    echo $response
+    local contentType="application/json"
+    local authorization="Bearer $accessToken"
+
+    local tmpFile
+    tmpFile=$(mktemp /tmp/makeRequest.XXXXXX.json)
+
+    local httpCode
+    httpCode=$(curl -s -w "%{http_code}" -o "$tmpFile" \
+        -X "$verb" \
+        -H "Content-Type: $contentType" \
+        -H "Authorization: $authorization" \
+        ${body:+-d "$body"} \
+        "$uri")
+
+    if [ $? -ne 0 ]; then
+        echo -e "\e[31m❌ CURL request failed (network or connection error)\e[0m" >&2
+        rm -f "$tmpFile"
+        exit 1
+    fi
+
+    if [[ "$httpCode" -lt 200 || "$httpCode" -ge 300 ]]; then
+        echo -e "\e[31m❌ Request failed with HTTP $httpCode\e[0m" >&2
+
+        if command -v jq >/dev/null 2>&1; then
+            jq . "$tmpFile" 2>/dev/null || cat "$tmpFile"
+        else
+            cat "$tmpFile"
+        fi
+
+        rm -f "$tmpFile"
+        exit 1
+    fi
+
+    cat "$tmpFile"
+    rm -f "$tmpFile"
 }
 
 getAccessToken(){
