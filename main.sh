@@ -1,6 +1,6 @@
 #!/bin/bash
 # install jq to use this script
-
+set -e
 brew install jq
 
 echo "IPAFileName:$AC_APP_FILE_NAME"
@@ -603,7 +603,7 @@ createAndUploadiOSLobApp(){
         minimumSupportedOperatingSystem=$(printf '{
         "%s": true
         }' "$minOsVersion")
-        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState, .uploadState, .isAssigned, .roleScopeTagIds, .dependentAppCount, .supersedingAppCount, .supersededAppCount )' | jq \
+        commitAppBody=$(echo "$publishedApp" | jq 'del(.id, .size, .["@odata.context"], .bunleId, .createdDateTime, .identityVersion, .lastModifiedDateTime, .publishingState, .uploadState, .isAssigned, .roleScopeTagIds, .dependentAppCount, .supersedingAppCount, .supersededAppCount, .appleDeviceAppDeliveryProtocolType )' | jq \
             --arg LOBType "#$LOBType" \
             --arg buildNumber "$buildNumber" \
             --arg contentVersionId "$contentVersionId" \
@@ -630,7 +630,18 @@ createAndUploadiOSLobApp(){
             .minimumSupportedOperatingSystem = $minimumSupportedOperatingSystem
             ')
     fi
-    response=$(makePatchRequest "$commitAppUri" "$commitAppBody")
+   
+    local uri="$baseUrl$commitAppUri"
+    contentType="application/json"
+    contentLength="${#commitAppBody}"
+    authorization="Bearer $accessToken"
+    
+    curl --fail-with-body -X PATCH \
+    -H "Content-Type: $contentType" \
+    -H "Content-Length: $contentLength" \
+    -H "Authorization: $authorization" \
+    -d "$commitAppBody" \
+    "$uri"
 
     printInfo "Removing Temporary file"
     rm "$temp_file"
