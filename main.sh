@@ -1,7 +1,6 @@
 #!/bin/bash
 # install jq to use this script
-set -e pipefail
-
+set -e
 brew install jq
 
 echo "IPAFileName:$AC_APP_FILE_NAME"
@@ -656,7 +655,20 @@ createAndUploadiOSLobApp(){
             .minimumSupportedOperatingSystem = $minimumSupportedOperatingSystem
             ')
     fi
-    response=$(makePatchRequest "$commitAppUri" "$commitAppBody")
+   
+    local uri="$baseUrl$commitAppUri"
+    contentType="application/json"
+    contentLength="${#commitAppBody}"
+    authorization="Bearer $accessToken"
+
+    printInfo "body:$commitAppBody token:$accessToken contentLength:$contentLength contentType:$contentType uri:$uri"
+    
+    curl --fail-with-body -X PATCH \
+    -H "Content-Type: $contentType" \
+    -H "Content-Length: $contentLength" \
+    -H "Authorization: $authorization" \
+    -d "$commitAppBody" \
+    "$uri"
 
     printInfo "Removing Temporary file"
     rm "$temp_file"
