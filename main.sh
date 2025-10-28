@@ -635,8 +635,6 @@ createAndUploadiOSLobApp(){
     contentType="application/json"
     contentLength="${#commitAppBody}"
     authorization="Bearer $accessToken"
-
-    printInfo "body:$commitAppBody token:$accessToken contentLength:$contentLength contentType:$contentType uri:$uri"
     
     curl --fail-with-body -X PATCH \
     -H "Content-Type: $contentType" \
