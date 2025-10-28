@@ -95,7 +95,7 @@ makeRequest() {
     tmpFile=$(mktemp /tmp/makeRequest.XXXXXX.json)
 
     local httpCode
-    httpCode=$(curl -s -w "%{http_code}" -o "$tmpFile" \
+    httpCode=$(curl -s -w "%{http_code}" --fail-with-body -o "$tmpFile" \
         -X "$verb" \
         -H "Content-Type: $contentType" \
         -H "Authorization: $authorization" \
@@ -103,13 +103,13 @@ makeRequest() {
         "$uri")
 
     if [ $? -ne 0 ]; then
-        echo -e "\e[31m❌ CURL request failed (network or connection error)\e[0m" >&2
+        echo -e "❌ CURL request failed (network or connection error)" >&2
         rm -f "$tmpFile"
         exit 1
     fi
 
     if [[ "$httpCode" -lt 200 || "$httpCode" -ge 300 ]]; then
-        echo -e "\e[31m❌ Request failed with HTTP $httpCode\e[0m" >&2
+        echo -e "❌ Request failed with HTTP $httpCode $body" >&2
 
         if command -v jq >/dev/null 2>&1; then
             jq . "$tmpFile" 2>/dev/null || cat "$tmpFile"
