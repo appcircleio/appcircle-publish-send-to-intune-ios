@@ -673,7 +673,7 @@ EXPIRATION_DATE=""
  fi
 
  if [ -n "${ExpireDate}" ]; then
-        EXPIRATION_DATE="$ExpireDate"
+        EXPIRATION_DATE=$(date -d "$ExpireDate" -u +"%Y-%m-%dT%H:%M:%SZ")
         printInfo "App expire Date: $ExpireDate"
  else 
         current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
