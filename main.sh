@@ -1,6 +1,7 @@
 #!/bin/bash
 # install jq to use this script
 set -e
+echo "TEST COMMIT APPLIED"
 brew install jq
 
 echo "IPAFileName:$AC_APP_FILE_NAME"
