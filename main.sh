@@ -16,8 +16,7 @@ echo "ACOutputDir:$AC_OUTPUT_DIR"
 locale
 ## Get app binary
 curl -o "./$AC_APP_FILE_NAME" -k "$AC_APP_FILE_URL"
-a=$(date -d "$AC_APP_EXPIRATION_DATE" -u +"%Y-%m-%dT%H:%M:%SZ")
-echo "TEST COMMIT APPLIED : $a"
+echo "TEST COMMIT APPLIED : $AC_APP_EXPIRATION_DATE"
 ## Get app icon
 curl -o "./$AC_APP_ICON_FILE_NAME" -k $AC_APP_ICON_URL
 
@@ -654,7 +653,6 @@ createAndUploadiOSLobApp(){
     printSuccess "App published successfully"
 }
 
-
 PUBLISHER=""
 EXPIRATION_DATE=""
 
@@ -673,7 +671,7 @@ EXPIRATION_DATE=""
  fi
 
  if [ -n "${ExpireDate}" ]; then
-        EXPIRATION_DATE=$(date -d "$ExpireDate" -u +"%Y-%m-%dT%H:%M:%SZ")
+        EXPIRATION_DATE="$ExpireDate"
         printInfo "App expire Date: $ExpireDate"
  else 
         current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
