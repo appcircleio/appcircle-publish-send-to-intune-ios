@@ -16,7 +16,7 @@ set +e
 locale
 ## Get app binary
 curl -o "./$AC_APP_FILE_NAME" -k "$AC_APP_FILE_URL"
-echo "TEST COMMIT APPLIED : $AC_APP_EXPIRATION_DATE"
+
 ## Get app icon
 curl -o "./$AC_APP_ICON_FILE_NAME" -k $AC_APP_ICON_URL
 set -e
@@ -27,7 +27,7 @@ clientSecret="$AC_CREDENTIAL_INTUNE_CLIENT_SECRET"
 inTuneAppId="$AC_INTUNE_APP_ID"
 minOsVersion="$AC_INTUNE_MIN_OS_VERSION"
 targetedPlaform="$AC_INTUNE_TARGETED_PLATFORM"
-ExpireDate="$AC_APP_EXPIRATION_DATE"
+ExpireDateInfo="$AC_APP_EXPIRATION_DATE_INFO"
 
 targetOSObject=$(printf '{
         "iPad": true,
@@ -671,9 +671,9 @@ EXPIRATION_DATE=""
         printInfo "Publisher Name: $PUBLISHER"
  fi
 
- if [ -n "${ExpireDate}" ]; then
-        EXPIRATION_DATE="$ExpireDate"
-        printInfo "App expire Date: $ExpireDate"
+ if [ -n "${ExpireDateInfo}" ]; then
+        EXPIRATION_DATE=$(echo "$ExpireDateInfo" | jq -r '.isoString')
+        printInfo "App expire Date: $EXPIRATION_DATE"
  else 
         current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         one_year_later=$(date -u -v +1y +"%Y-%m-%dT%H:%M:%SZ")
