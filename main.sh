@@ -1,7 +1,6 @@
 #!/bin/bash
 # install jq to use this script
 set -e
-echo "TEST COMMIT APPLIED : $AC_APP_EXPIRATION_DATE"
 brew install jq
 
 echo "IPAFileName:$AC_APP_FILE_NAME"
@@ -17,7 +16,7 @@ echo "ACOutputDir:$AC_OUTPUT_DIR"
 locale
 ## Get app binary
 curl -o "./$AC_APP_FILE_NAME" -k "$AC_APP_FILE_URL"
-
+echo "TEST COMMIT APPLIED : $AC_APP_EXPIRATION_DATE"
 ## Get app icon
 curl -o "./$AC_APP_ICON_FILE_NAME" -k $AC_APP_ICON_URL
 
