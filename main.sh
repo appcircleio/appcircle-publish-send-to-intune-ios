@@ -16,7 +16,8 @@ echo "ACOutputDir:$AC_OUTPUT_DIR"
 locale
 ## Get app binary
 curl -o "./$AC_APP_FILE_NAME" -k "$AC_APP_FILE_URL"
-echo "TEST COMMIT APPLIED : $AC_APP_EXPIRATION_DATE"
+a=$(date -d "$AC_APP_EXPIRATION_DATE" -u +"%Y-%m-%dT%H:%M:%SZ")
+echo "TEST COMMIT APPLIED : $a"
 ## Get app icon
 curl -o "./$AC_APP_ICON_FILE_NAME" -k $AC_APP_ICON_URL
 
