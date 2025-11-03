@@ -1,6 +1,5 @@
 #!/bin/bash
 # install jq to use this script
-set -e
 brew install jq
 
 echo "IPAFileName:$AC_APP_FILE_NAME"
@@ -13,12 +12,14 @@ echo "IconFileName:$AC_APP_ICON_FILE_NAME"
 echo "IconUrl:$AC_APP_ICON_URL"
 echo "ACOutputDir:$AC_OUTPUT_DIR"
 
+set +e
 locale
 ## Get app binary
 curl -o "./$AC_APP_FILE_NAME" -k "$AC_APP_FILE_URL"
 echo "TEST COMMIT APPLIED : $AC_APP_EXPIRATION_DATE"
 ## Get app icon
 curl -o "./$AC_APP_ICON_FILE_NAME" -k $AC_APP_ICON_URL
+set -e
 
 authUrl="$AC_CREDENTIAL_INTUNE_CLIENT_AUTH_URL"
 clientId="$AC_CREDENTIAL_INTUNE_CLIENT_ID"
