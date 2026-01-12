@@ -640,7 +640,6 @@ createAndUploadiOSLobApp(){
     
     curl --fail-with-body -X PATCH \
     -H "Content-Type: $contentType" \
-    -H "Content-Length: $contentLength" \
     -H "Authorization: $authorization" \
     -d "$commitAppBody" \
     "$uri"
