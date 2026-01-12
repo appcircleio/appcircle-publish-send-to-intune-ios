@@ -252,84 +252,60 @@ getiOSAppBody(){
     local expirationDateTime="$9"
 
     iconBody=$(getAppIconBody)
-
-    if [ -n "$iconBody" ]; then
-        jq -n \
-          --arg odata "#microsoft.graph.iosLOBApp" \
-          --arg displayName "$displayName" \
-          --arg publisher "$publisher" \
-          --arg description "$description" \
-          --arg fileName "$filename" \
-          --arg buildNumber "$buildNumber" \
-          --arg bundleId "$bundleId" \
-          --arg identityVersion "$identityVersion" \
-          --arg versionNumber "$versionNumber" \
-          --arg expirationDateTime "$expirationDateTime" \
-          --arg minOs "$minOsVersion" \
-          --argjson applicableDeviceType "$targetOSObject" \
-          --argjson largeIcon "$iconBody" \
-        '{
-            "@odata.type": $odata,
-            applicableDeviceType: $applicableDeviceType,
-            categories: [],
-            displayName: $displayName,
-            publisher: $publisher,
-            description: $description,
-            fileName: $fileName,
-            buildNumber: $buildNumber,
-            bundleId: $bundleId,
-            identityVersion: $identityVersion,
-            minimumSupportedOperatingSystem: {
-                ($minOs): true
-            },
-            largeIcon: $largeIcon,
-            informationUrl: null,
-            isFeatured: false,
-            privacyInformationUrl: null,
-            developer: "",
-            notes: "",
-            owner: "",
-            expirationDateTime: $expirationDateTime,
-            versionNumber: $versionNumber
-        }'
+    if([ -n "$iconBody" ]); then
+    cat <<EOF
+{
+    "@odata.type": "#microsoft.graph.iosLOBApp",
+    "applicableDeviceType": $targetOSObject,
+    "categories": [],
+    "displayName": "$displayName",
+    "publisher": "$publisher",
+    "description": "$description",
+    "fileName": "$filename",
+    "buildNumber": "$buildNumber",
+    "bundleId": "$bundleId",
+    "identityVersion": "$identityVersion",
+    "minimumSupportedOperatingSystem": {
+        "$minOsVersion": true
+    },
+    largeIcon:$(echo "$iconBody" | jq -c .),
+    "informationUrl": null,
+    "isFeatured": false,
+    "privacyInformationUrl": null,
+    "developer": "",
+    "notes": "",
+    "owner": "",
+    "expirationDateTime": "$expirationDateTime",
+    "versionNumber": "$versionNumber"
+}
+EOF
     else
-        jq -n \
-          --arg odata "#microsoft.graph.iosLOBApp" \
-          --arg displayName "$displayName" \
-          --arg publisher "$publisher" \
-          --arg description "$description" \
-          --arg fileName "$filename" \
-          --arg buildNumber "$buildNumber" \
-          --arg bundleId "$bundleId" \
-          --arg identityVersion "$identityVersion" \
-          --arg versionNumber "$versionNumber" \
-          --arg expirationDateTime "$expirationDateTime" \
-          --arg minOs "$minOsVersion" \
-          --argjson applicableDeviceType "$targetOSObject" \
-        '{
-            "@odata.type": $odata,
-            applicableDeviceType: $applicableDeviceType,
-            categories: [],
-            displayName: $displayName,
-            publisher: $publisher,
-            description: $description,
-            fileName: $fileName,
-            buildNumber: $buildNumber,
-            bundleId: $bundleId,
-            identityVersion: $identityVersion,
-            minimumSupportedOperatingSystem: {
-                ($minOs): true
-            },
-            informationUrl: null,
-            isFeatured: false,
-            privacyInformationUrl: null,
-            developer: "",
-            notes: "",
-            owner: "",
-            expirationDateTime: $expirationDateTime,
-            versionNumber: $versionNumber
-        }'
-    fi
+    cat <<EOF
+{
+    "@odata.type": "#microsoft.graph.iosLOBApp",
+    "applicableDeviceType": $targetOSObject,
+    "categories": [],
+    "displayName": "$displayName",
+    "publisher": "$publisher",
+    "description": "$description",
+    "fileName": "$filename",
+    "buildNumber": "$buildNumber",
+    "bundleId": "$bundleId",
+    "identityVersion": "$identityVersion",
+    "minimumSupportedOperatingSystem": {
+        "$minOsVersion": true
+    },
+    "informationUrl": null,
+    "isFeatured": false,
+    "privacyInformationUrl": null,
+    "developer": "",
+    "notes": "",
+    "owner": "",
+    "expirationDateTime": "$expirationDateTime",
+    "versionNumber": "$versionNumber"
+}
+EOF
+fi
 }
 
 
