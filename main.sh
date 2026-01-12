@@ -557,6 +557,7 @@ createAndUploadiOSLobApp(){
         mobileAppBody=$(getiOSAppBody "$displayName" "$publisher" "$description" "$filename" "$bundleId" "$identityVersion" "$buildNumber" "$versionNumber" "$expirationDateTime")
         
         printInfo "Generated iOS App JSON body:"
+        echo "$mobileAppBody"
         echo "$mobileAppBody" | jq .
 
         printInfo "Creating application in Intune..."
