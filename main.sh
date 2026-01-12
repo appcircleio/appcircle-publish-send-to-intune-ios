@@ -95,7 +95,7 @@ makeRequest(){
     contentType="application/json"
     contentLength="${#body}"
     authorization="Bearer $accessToken"
-    response=$(curl -X "$verb" -H "Content-Type: $contentType" -H "Content-Length: $contentLength" -H "Authorization: $authorization" -d "$body" "$uri" 2>/dev/null)
+    response=$(curl -X "$verb" -H "Content-Type: $contentType" -H "Authorization: $authorization" -d "$body" "$uri" 2>/dev/null)
     echo $response
 }
 
@@ -640,7 +640,6 @@ createAndUploadiOSLobApp(){
     
     curl --fail-with-body -X PATCH \
     -H "Content-Type: $contentType" \
-    -H "Content-Length: $contentLength" \
     -H "Authorization: $authorization" \
     -d "$commitAppBody" \
     "$uri"
