@@ -555,6 +555,10 @@ createAndUploadiOSLobApp(){
     if [ "$updateApp" = "false" ]; then
         printInfo "Creating JSON data to pass to the service..."
         mobileAppBody=$(getiOSAppBody "$displayName" "$publisher" "$description" "$filename" "$bundleId" "$identityVersion" "$buildNumber" "$versionNumber" "$expirationDateTime")
+        
+        printInfo "Generated iOS App JSON body:"
+        echo "$mobileAppBody" | jq .
+
         printInfo "Creating application in Intune..."
         mobileApp=$(makePostRequest "/deviceAppManagement/mobileApps" "$mobileAppBody")
         error=$(echo "$mobileApp" | jq -r '.error')
