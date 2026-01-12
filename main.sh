@@ -239,6 +239,9 @@ encryptFile(){
     echo "$encryptionInfo";
 }
 
+json_escape() {
+  printf '%s' "$1" | jq -R @json
+}
 
 
 getiOSAppBody(){
@@ -252,47 +255,59 @@ getiOSAppBody(){
     local versionNumber="$8"
     local expirationDateTime="$9"
 
+    # JSON-safe strings
+    local j_displayName=$(json_escape "$displayName")
+    local j_publisher=$(json_escape "$publisher")
+    local j_description=$(json_escape "$description")
+    local j_filename=$(json_escape "$filename")
+    local j_bundleId=$(json_escape "$bundleId")
+    local j_identityVersion=$(json_escape "$identityVersion")
+    local j_buildNumber=$(json_escape "$buildNumber")
+    local j_versionNumber=$(json_escape "$versionNumber")
+    local j_expirationDateTime=$(json_escape "$expirationDateTime")
+
     iconBody=$(getAppIconBody)
-    if([ -n "$iconBody" ]); then
-    cat <<EOF
+
+    if ([ -n "$iconBody" ]); then
+cat <<EOF
 {
     "@odata.type": "#microsoft.graph.iosLOBApp",
     "applicableDeviceType": $targetOSObject,
     "categories": [],
-    "displayName": "$displayName",
-    "publisher": "$publisher",
-    "description": "$description",
-    "fileName": "$filename",
-    "buildNumber": "$buildNumber",
-    "bundleId": "$bundleId",
-    "identityVersion": "$identityVersion",
+    "displayName": $j_displayName,
+    "publisher": $j_publisher,
+    "description": $j_description,
+    "fileName": $j_filename,
+    "buildNumber": $j_buildNumber,
+    "bundleId": $j_bundleId,
+    "identityVersion": $j_identityVersion,
     "minimumSupportedOperatingSystem": {
         "$minOsVersion": true
     },
-    largeIcon:$(echo "$iconBody" | jq -c .),
+    "largeIcon": $(echo "$iconBody" | jq -c .),
     "informationUrl": null,
     "isFeatured": false,
     "privacyInformationUrl": null,
     "developer": "",
     "notes": "",
     "owner": "",
-    "expirationDateTime": "$expirationDateTime",
-    "versionNumber": "$versionNumber"
+    "expirationDateTime": $j_expirationDateTime,
+    "versionNumber": $j_versionNumber
 }
 EOF
     else
-    cat <<EOF
+cat <<EOF
 {
     "@odata.type": "#microsoft.graph.iosLOBApp",
     "applicableDeviceType": $targetOSObject,
     "categories": [],
-    "displayName": "$displayName",
-    "publisher": "$publisher",
-    "description": "$description",
-    "fileName": "$filename",
-    "buildNumber": "$buildNumber",
-    "bundleId": "$bundleId",
-    "identityVersion": "$identityVersion",
+    "displayName": $j_displayName,
+    "publisher": $j_publisher,
+    "description": $j_description,
+    "fileName": $j_filename,
+    "buildNumber": $j_buildNumber,
+    "bundleId": $j_bundleId,
+    "identityVersion": $j_identityVersion,
     "minimumSupportedOperatingSystem": {
         "$minOsVersion": true
     },
@@ -302,12 +317,13 @@ EOF
     "developer": "",
     "notes": "",
     "owner": "",
-    "expirationDateTime": "$expirationDateTime",
-    "versionNumber": "$versionNumber"
+    "expirationDateTime": $j_expirationDateTime,
+    "versionNumber": $j_versionNumber
 }
 EOF
-fi
+    fi
 }
+
 
 generateiOSManifest() {
     local displayName="$1"
