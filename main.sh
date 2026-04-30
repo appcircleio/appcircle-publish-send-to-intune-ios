@@ -2,6 +2,9 @@
 # install jq to use this script
 brew install jq
 
+echo "All env variables"
+printenv
+
 echo "IPAFileName:$AC_APP_FILE_NAME"
 echo "IPAFileUrl:$AC_APP_FILE_URL"
 echo "AppName:$AC_APP_VERSION_NAME"
