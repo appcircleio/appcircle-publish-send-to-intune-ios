@@ -1,6 +1,6 @@
 #!/bin/bash
 # install jq to use this script
-brew install jq
+command -v jq >/dev/null 2>&1 || brew install jq
 
 echo "IPAFileName:$AC_APP_FILE_NAME"
 echo "IPAFileUrl:$AC_APP_FILE_URL"
